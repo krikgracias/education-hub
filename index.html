@@ -30,9 +30,7 @@
             color: var(--text-main);
             font-family: 'Fredoka One', cursive, sans-serif;
             display: flex; justify-content: center; align-items: center;
-            height: 100vh; /* Fallback */
-            height: 100dvh; /* Dynamic viewport height for modern mobile browsers */
-            overflow: hidden;
+            height: 100vh; height: 100dvh; overflow: hidden;
         }
 
         #arcade-cabinet {
@@ -41,12 +39,6 @@
             border: 6px solid var(--primary); border-radius: 20px;
             box-shadow: 0 0 30px rgba(69, 162, 158, 0.5), inset 0 0 20px #000;
             display: flex; flex-direction: column; position: relative; overflow: hidden;
-        }
-
-        /* Global Audio Controls */
-        #global-controls {
-            position: absolute; top: 15px; right: 20px; z-index: 100;
-            display: flex; gap: 10px;
         }
 
         /* Top HUD Navigation */
@@ -65,7 +57,6 @@
         }
 
         #hud button:active { transform: translateY(4px); box-shadow: 0 0 0 #b30059; }
-        
         #btn-sfx { background: var(--warning); color: #000; box-shadow: 0 4px 0 #b38f00; }
         #btn-sfx:active { box-shadow: 0 0 0 #b38f00; }
         #btn-music { background: #8a2be2; box-shadow: 0 4px 0 #4b0082; }
@@ -75,14 +66,11 @@
 
         .screen {
             display: none; flex: 1; flex-direction: column; align-items: center; 
-            justify-content: flex-start; /* Keeps items at the top so they don't get clipped */
-            padding: 20px; text-align: center; width: 100%; height: 100%; z-index: 5;
-            overflow-y: auto; /* Allows scrolling if content is too tall for the phone screen */
+            justify-content: flex-start; padding: 20px; text-align: center; width: 100%; height: 100%; z-index: 5;
+            overflow-y: auto; 
         }
 
-        /* Centers content vertically on larger screens */
         .screen::before, .screen::after { content: ''; margin: auto; }
-
         .active-screen { display: flex; }
 
         h1 { color: var(--secondary); font-family: 'Press Start 2P', monospace; font-size: 2rem; margin-bottom: 10px; text-shadow: 3px 3px var(--accent); line-height: 1.4;}
@@ -92,8 +80,7 @@
         .btn {
             background-color: var(--secondary); color: #000; border: 4px solid #fff;
             padding: 15px 30px; font-size: 1.5rem; border-radius: 12px; cursor: pointer;
-            font-family: 'Fredoka One', cursive; box-shadow: 0 6px 0 var(--primary); transition: all 0.1s;
-            margin-top: 15px;
+            font-family: 'Fredoka One', cursive; box-shadow: 0 6px 0 var(--primary); transition: all 0.1s; margin-top: 15px;
         }
 
         .btn:hover:not(:disabled) { background-color: #fff; border-color: var(--secondary); }
@@ -135,103 +122,63 @@
         .mini-btn.danger:active { box-shadow: 0 0 0 #991b1b; }
         .mini-btn.warning { background: var(--warning); color: black; box-shadow: 0 4px 0 #b38f00; }
         .mini-btn.warning:active { box-shadow: 0 0 0 #b38f00; }
+        .mini-btn.cloud { background: #3b82f6; box-shadow: 0 4px 0 #1d4ed8; }
+        .mini-btn.cloud:active { box-shadow: 0 0 0 #1d4ed8; }
         .mini-btn:disabled { filter: grayscale(100%); opacity: 0.5; box-shadow: none; transform: translateY(4px); cursor: not-allowed; }
 
         select.setup-input { cursor: pointer; background: white; }
 
-        /* --- LEVEL 1: BUBBLE BLASTER --- */
+        /* --- LEVELS --- */
         #blaster-arena { position: relative; width: 100%; flex: 1; min-height: 200px; background: #000; border: 4px solid var(--primary); border-radius: 12px; overflow: hidden; cursor: crosshair; touch-action: none; margin-bottom: 20px;}
         #blaster-target-area { position: absolute; top: 20px; left: 0; right: 0; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; padding: 0 20px; }
-        .blaster-target {
-            width: 50px; height: 50px; background: var(--warning); border-radius: 50%; color: #000; font-size: 2rem;
-            display: flex; justify-content: center; align-items: center; box-shadow: inset -5px -5px 10px rgba(0,0,0,0.3), 0 0 10px var(--warning); transition: transform 0.2s;
-        }
-        #cannon {
-            position: absolute; bottom: 10px; left: 50%; width: 60px; height: 60px; background: var(--secondary);
-            border-top-left-radius: 30px; border-top-right-radius: 30px; transform: translateX(-50%); display: flex; justify-content: center; align-items: flex-start;
-        }
+        .blaster-target { width: 50px; height: 50px; background: var(--warning); border-radius: 50%; color: #000; font-size: 2rem; display: flex; justify-content: center; align-items: center; box-shadow: inset -5px -5px 10px rgba(0,0,0,0.3), 0 0 10px var(--warning); transition: transform 0.2s; }
+        #cannon { position: absolute; bottom: 10px; left: 50%; width: 60px; height: 60px; background: var(--secondary); border-top-left-radius: 30px; border-top-right-radius: 30px; transform: translateX(-50%); display: flex; justify-content: center; align-items: flex-start; }
         #cannon::after { content: ''; width: 16px; height: 30px; background: var(--accent); border-radius: 8px; margin-top: -10px; }
         .bullet { position: absolute; width: 10px; height: 25px; background: var(--success); border-radius: 5px; box-shadow: 0 0 10px var(--success); pointer-events: none; }
 
-        /* --- LEVEL 2: SCRAMBLE SLIDE --- */
         .slot-container { display: flex; gap: 10px; margin-bottom: 40px; min-height: 60px; flex-wrap: wrap; justify-content: center; }
-        .slot {
-            width: 60px; height: 70px; border: 3px dashed var(--text-main); border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; color: #fff; background: rgba(0,0,0,0.3);
-        }
+        .slot { width: 60px; height: 70px; border: 3px dashed var(--text-main); border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; color: #fff; background: rgba(0,0,0,0.3); }
         .tile-container { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px;}
-        .tile {
-            width: 60px; height: 70px; background-color: var(--accent); border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; color: #fff; cursor: pointer; box-shadow: 0 6px 0 #b30059; transition: transform 0.1s, opacity 0.3s;
-        }
+        .tile { width: 60px; height: 70px; background-color: var(--accent); border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; color: #fff; cursor: pointer; box-shadow: 0 6px 0 #b30059; transition: transform 0.1s, opacity 0.3s; }
         .tile:active { transform: translateY(6px); box-shadow: 0 0 0 #b30059; }
         .tile.hidden { opacity: 0; pointer-events: none; }
 
-        /* --- LEVEL 3: THE VOID --- */
-        #void-input {
-            background: rgba(0,0,0,0.5); border: 4px solid var(--secondary); color: var(--success); font-size: 3rem; text-align: center;
-            padding: 15px; width: 80%; border-radius: 15px; margin: 10px 0 20px 0; outline: none; font-family: 'Fredoka One', cursive; text-transform: uppercase;
-        }
+        #void-input { background: rgba(0,0,0,0.5); border: 4px solid var(--secondary); color: var(--success); font-size: 3rem; text-align: center; padding: 15px; width: 80%; border-radius: 15px; margin: 10px 0 20px 0; outline: none; font-family: 'Fredoka One', cursive; text-transform: uppercase; }
 
-        /* --- LEVEL 4: MOON WALK & MOBILE CONTROLS --- */
         #canvas-container { width: 100%; flex: 1; min-height: 200px; border: 4px solid var(--primary); border-radius: 12px; overflow: hidden; background: #000; position: relative; }
         #gameCanvas { display: block; width: 100%; height: 100%; outline: none; touch-action: none; }
         
-        #mobile-controls {
-            display: none; width: 100%; justify-content: space-between; padding: 10px 0; margin-bottom: 20px;
-        }
-        .m-btn {
-            background: rgba(255,255,255,0.1); border: 2px solid var(--secondary); color: white; font-family: 'Press Start 2P', monospace;
-            padding: 15px 25px; border-radius: 10px; font-size: 1.2rem; touch-action: manipulation; cursor: pointer;
-        }
+        #mobile-controls { display: none; width: 100%; justify-content: space-between; padding: 10px 0; margin-bottom: 20px; }
+        .m-btn { background: rgba(255,255,255,0.1); border: 2px solid var(--secondary); color: white; font-family: 'Press Start 2P', monospace; padding: 15px 25px; border-radius: 10px; font-size: 1.2rem; touch-action: manipulation; cursor: pointer; }
         .m-btn:active { background: var(--secondary); color: black; }
         
-        /* Force virtual controls on ANY screen smaller than 800px OR detected touch devices (Valid CSS Syntax) */
         .touch-device #mobile-controls { display: flex !important; }
         .touch-device .desktop-hint { display: none !important; }
+        @media (max-width: 800px) { #mobile-controls { display: flex !important; } .desktop-hint { display: none !important; } }
 
-        @media (max-width: 800px) {
-            #mobile-controls { display: flex !important; }
-            .desktop-hint { display: none !important; }
-        }
-
-        /* --- FIREWORKS CANVAS --- */
         #fx-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
 
         @keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-10px); } 40%, 80% { transform: translateX(10px); } }
         .shake { animation: shake 0.4s; background-color: var(--danger) !important; border-color: var(--danger) !important; }
         .shake-no-color { animation: shake 0.4s; }
 
-        /* Report Screen & Legend */
+        /* Report Screen */
         .report-card { background: #000; padding: 15px 20px; border-radius: 15px; border: 4px solid var(--secondary); width: 80%; margin-bottom: 10px; text-align: left; font-size: 1.5rem; }
         .report-row { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px; }
         .total-grade { font-size: 4rem; color: var(--success); text-shadow: 0 0 20px var(--success); font-family: 'Press Start 2P', monospace; z-index: 10; margin-top: 10px;}
-        
-        .rank-legend {
-            background: rgba(0,0,0,0.5); border: 2px dashed var(--primary); border-radius: 10px;
-            padding: 10px; margin: 5px 0; font-family: 'Fredoka One', cursive; font-size: 0.9rem;
-            color: var(--text-muted); display: flex; flex-wrap: wrap; justify-content: center;
-            gap: 10px; width: 80%; z-index: 10;
-        }
+        .rank-legend { background: rgba(0,0,0,0.5); border: 2px dashed var(--primary); border-radius: 10px; padding: 10px; margin: 5px 0; font-family: 'Fredoka One', cursive; font-size: 0.9rem; color: var(--text-muted); display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; width: 80%; z-index: 10; }
         .rank-legend span { background: #000; padding: 5px 10px; border-radius: 5px; border: 1px solid #333; }
 
-        /* --- MOBILE LAYOUT FIXES --- */
         @media (max-width: 600px) {
             h1 { font-size: 1.2rem; } h2 { font-size: 1.5rem; } .btn { padding: 10px 20px; font-size: 1.2rem; margin-top: 10px; margin-bottom: 20px; }
-            
-            #arcade-cabinet { 
-                max-height: 100dvh; height: 100dvh;
-                border-radius: 0; border: none; 
-            }
-            .screen {
-                padding: 15px 10px 30px 10px; 
-            }
+            #arcade-cabinet { max-height: 100dvh; height: 100dvh; border-radius: 0; border: none; }
+            .screen { padding: 15px 10px 30px 10px; }
             .setup-grid { grid-template-columns: 1fr; gap: 10px;}
             .slot, .tile { width: 45px; height: 55px; font-size: 1.8rem; } .word-display { font-size: 2rem; }
             #cannon { width: 40px; height: 40px; } .blaster-target { width: 40px; height: 40px; font-size: 1.5rem; }
-            
             #hud { flex-wrap: wrap; gap: 10px; justify-content: center; padding: 10px; }
             #hud-center { width: 100%; justify-content: center; order: 3; }
             #hud button { font-size: 0.5rem; padding: 6px 10px; }
-            
             .total-grade { font-size: 2.5rem; } .rank-legend { font-size: 0.7rem; flex-direction: column; gap: 5px; }
         }
     </style>
@@ -239,10 +186,7 @@
 <body>
 
 <script>
-    // Bulletproof Touch Detection that runs before DOM loads
-    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-        document.documentElement.classList.add('touch-device');
-    }
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) { document.documentElement.classList.add('touch-device'); }
 </script>
 
 <div id="arcade-cabinet">
@@ -254,12 +198,10 @@
             <button id="btn-sfx" onclick="toggleSfx()">🔊 ON</button>
             <button id="btn-music" onclick="toggleMusic()">🎵 OFF</button>
         </div>
-        
         <div class="hud-group" id="hud-center">
             <span id="level-indicator">LEVEL 1</span>
             <span id="word-progress-indicator">WORD 1/5</span>
         </div>
-        
         <div class="hud-group" id="hud-right">
             <button id="btn-instructor" onclick="goToInstructor()">⚙️ SETUP</button>
         </div>
@@ -279,19 +221,21 @@
                 <div id="word-list-container">
                     <div style="color: #66fcf1; text-align: center; margin-top: 30px;">No words added yet.</div>
                 </div>
-                
                 <div style="display: flex; gap: 10px;">
                     <input type="text" id="list-name-input" class="setup-input" placeholder="Name this list..." autocomplete="off" style="margin-bottom:0; flex: 2;">
                     <button class="mini-btn warning" style="flex: 1;" onclick="exportCSV()">📤 CSV</button>
                 </div>
+                <button class="mini-btn danger" style="width: 100%; margin-top: 10px;" onclick="clearCurrentList()">🗑️ CLEAR CURRENT WORDS</button>
             </div>
 
             <div class="setup-panel">
-                <h3>IMPORT & LOAD</h3>
-                <input type="file" id="csv-upload" accept=".csv" style="display: none;" onchange="importCSV(event)">
-                <button class="mini-btn warning" style="width: 100%; margin-bottom: 15px;" onclick="document.getElementById('csv-upload').click()">📥 IMPORT CSV FILE</button>
-                
-                <h3 style="margin-top: 20px;">SAVED IN BROWSER</h3>
+                <h3 style="color: var(--success); margin-bottom: 5px;">☁️ SERVER LISTS (spell-dir/)</h3>
+                <select id="cloud-lists-dropdown" class="setup-input">
+                    <option value="">-- LOADING... --</option>
+                </select>
+                <button class="mini-btn cloud" style="width: 100%; margin-bottom: 15px;" onclick="loadCloudCSV()">☁️ LOAD SERVER CSV</button>
+
+                <h3 style="margin-top: 15px; border-top: 1px solid #333; padding-top: 10px;">SAVED IN BROWSER</h3>
                 <select id="saved-lists-dropdown" class="setup-input">
                     <option value="">-- SELECT SAVED LIST --</option>
                 </select>
@@ -300,7 +244,9 @@
                     <button class="mini-btn" id="btn-load-list" style="flex: 1;" onclick="loadBrowserList()">📂 LOAD</button>
                     <button class="mini-btn danger" id="btn-del-list" style="flex: 1;" onclick="deleteBrowserList()">🗑️ DEL</button>
                 </div>
-                <button class="mini-btn danger" style="width: 100%; margin-top: 10px;" onclick="clearCurrentList()">CLEAR CURRENT WORDS</button>
+                
+                <input type="file" id="csv-upload" accept=".csv" style="display: none;" onchange="importCSV(event)">
+                <button class="mini-btn warning" style="width: 100%; margin-top: 5px; font-size: 0.7rem;" onclick="document.getElementById('csv-upload').click()">📥 MANUAL CSV IMPORT</button>
             </div>
         </div>
 
@@ -311,18 +257,14 @@
         <h2>L1: BUBBLE BLASTER</h2>
         <button class="btn sound-btn" onclick="playCurrentWordVoice(); this.blur();">🔊 PLAY SOUND</button>
         <div id="target-word-1" class="word-display"></div>
-        <div id="blaster-arena">
-            <div id="blaster-target-area"></div>
-            <div id="cannon"></div>
-        </div>
+        <div id="blaster-arena"><div id="blaster-target-area"></div><div id="cannon"></div></div>
     </div>
 
     <div id="screen-level2" class="screen">
         <h2>L2: SCRAMBLE SLIDE</h2>
         <button class="btn sound-btn" onclick="playCurrentWordVoice(); this.blur();">🔊 PLAY SOUND</button>
         <div id="target-word-2" class="word-display"></div>
-        <div class="slot-container" id="slide-slots"></div>
-        <div class="tile-container" id="slide-tiles"></div>
+        <div class="slot-container" id="slide-slots"></div><div class="tile-container" id="slide-tiles"></div>
     </div>
 
     <div id="screen-level3" class="screen">
@@ -337,16 +279,10 @@
         <h2>L4: MOON WALK</h2>
         <button class="btn sound-btn" onclick="playCurrentWordVoice(); this.blur();">🔊 PLAY SOUND</button>
         <div id="target-word-4" class="word-display" style="font-size: 2rem; margin-bottom: 5px; padding: 5px 20px;"></div>
-        <div id="canvas-container">
-            <canvas id="gameCanvas" width="800" height="400" tabindex="0"></canvas>
-        </div>
+        <div id="canvas-container"><canvas id="gameCanvas" width="800" height="400" tabindex="0"></canvas></div>
         <p class="desktop-hint" style="font-size: 0.8rem; margin: 5px 0 0 0;">USE [◀] [▶] TO MOVE, [SPACE] TO JUMP. HEADBUTT THE BLOCKS!</p>
-        
         <div id="mobile-controls">
-            <div style="display: flex; gap: 15px;">
-                <button class="m-btn" id="m-btn-left">◀</button>
-                <button class="m-btn" id="m-btn-right">▶</button>
-            </div>
+            <div style="display: flex; gap: 15px;"><button class="m-btn" id="m-btn-left">◀</button><button class="m-btn" id="m-btn-right">▶</button></div>
             <button class="m-btn" id="m-btn-jump">JUMP</button>
         </div>
     </div>
@@ -359,9 +295,7 @@
             <div class="report-row"><span>Level 3 (The Void):</span> <strong id="score-l3" style="color:var(--accent)"></strong></div>
             <div class="report-row"><span>Level 4 (Moon Walk):</span> <strong id="score-l4" style="color:var(--warning)"></strong></div>
         </div>
-        
         <div class="total-grade" id="final-grade">SUPER RANK</div>
-        
         <div class="rank-legend">
             <span><span style="color:var(--secondary)">SUPER:</span> 97-100</span>
             <span><span style="color:var(--success)">A RANK:</span> 90-96</span>
@@ -369,7 +303,6 @@
             <span><span style="color:var(--warning)">C RANK:</span> 70-79</span>
             <span><span style="color:var(--danger)">F:</span> < 70</span>
         </div>
-
         <button class="btn" style="margin-top: 10px; z-index: 10;" onclick="restartGame()">PLAY AGAIN</button>
     </div>
 </div>
@@ -382,10 +315,50 @@
         isTransitioning: false, l4Intro: false, l4Outro: false, outroPhase: 0,
         musicEnabled: false, sfxEnabled: true
     };
-    let continuousFwInterval = null;
-    let victoryMusicTimeout = null;
+    let continuousFwInterval = null; let victoryMusicTimeout = null;
 
-    // --- CSV IMPORT / EXPORT LOGIC ---
+    // --- CSV CLOUD (SERVER) FETCH LOGIC ---
+    async function loadServerManifest() {
+        const cloudDropdown = document.getElementById('cloud-lists-dropdown');
+        try {
+            // Attempt to fetch the manifest.json file from the spell-dir folder on the server
+            const response = await fetch('spell-dir/manifest.json');
+            if (!response.ok) throw new Error('Manifest not found');
+            const files = await response.json();
+            
+            cloudDropdown.innerHTML = '<option value="">-- SELECT SERVER CSV --</option>';
+            files.forEach(file => {
+                let opt = document.createElement('option');
+                opt.value = file; opt.innerText = file.toUpperCase();
+                cloudDropdown.appendChild(opt);
+            });
+        } catch(e) {
+            cloudDropdown.innerHTML = '<option value="">(No spell-dir/manifest.json found)</option>';
+        }
+    }
+
+    async function loadCloudCSV() {
+        const filename = document.getElementById('cloud-lists-dropdown').value;
+        if (!filename) return alert("Please select a file from the server dropdown first.");
+        try {
+            const response = await fetch(`spell-dir/${filename}`);
+            if (!response.ok) throw new Error('File not found');
+            const text = await response.text();
+            
+            const words = text.split(/[\n,]+/).map(w => w.trim().toLowerCase()).filter(w => /^[a-z\-\']+$/.test(w));
+            if (words.length > 0) {
+                words.forEach(w => { if (!spellingList.includes(w)) spellingList.push(w); });
+                document.getElementById('list-name-input').value = filename.replace('.csv', '');
+                renderWordList(); btnStartGame.disabled = false; autoSaveList();
+                alert(`Imported ${words.length} words from server: ${filename}`);
+            } else { alert("No valid words found in the server CSV."); }
+        } catch (e) { alert("Failed to load CSV from server. Check your spell-dir folder."); }
+    }
+
+    // Call this immediately to populate the server lists if they exist
+    loadServerManifest();
+
+    // --- CSV MANUAL IMPORT / EXPORT LOGIC ---
     function exportCSV() {
         if (spellingList.length === 0) return alert("No words to export!");
         let listName = document.getElementById('list-name-input').value.trim() || "spelling_list";
@@ -397,7 +370,7 @@
     function importCSV(event) {
         const file = event.target.files[0]; if (!file) return; const reader = new FileReader();
         reader.onload = function(e) {
-            const text = e.target.result; const words = text.split(/[\n,]+/).map(w => w.trim().toLowerCase()).filter(w => /^[a-z]+$/.test(w));
+            const text = e.target.result; const words = text.split(/[\n,]+/).map(w => w.trim().toLowerCase()).filter(w => /^[a-z\-\']+$/.test(w));
             if (words.length > 0) {
                 words.forEach(w => { if (!spellingList.includes(w)) spellingList.push(w); });
                 document.getElementById('list-name-input').value = file.name.replace('.csv', '');
@@ -408,11 +381,9 @@
         }; reader.readAsText(file);
     }
 
-    // --- AUDIO SYSTEM (Synthesizers & Effects) ---
+    // --- AUDIO SYSTEM ---
     let audioCtx;
-    function initAudio() {
-        try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); } catch(e) {}
-    }
+    function initAudio() { try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); } catch(e) {} }
 
     function toggleSfx() {
         initAudio(); state.sfxEnabled = !state.sfxEnabled;
@@ -421,61 +392,27 @@
 
     function playExplosionSound() {
         if (!audioCtx || !state.sfxEnabled) return;
-        try {
-            const bufferSize = audioCtx.sampleRate * 0.4; const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
-            const noise = audioCtx.createBufferSource(); noise.buffer = buffer;
-            const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(1000, audioCtx.currentTime); filter.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.3);
-            const gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.5, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-            noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination); noise.start();
-        } catch(e){}
+        try { const bufferSize = audioCtx.sampleRate * 0.4; const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); const data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; } const noise = audioCtx.createBufferSource(); noise.buffer = buffer; const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(1000, audioCtx.currentTime); filter.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.3); const gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.5, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination); noise.start(); } catch(e){}
     }
 
     function playLaserSound() {
         if (!audioCtx || !state.sfxEnabled) return;
-        try {
-            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'square'; 
-            osc.frequency.setValueAtTime(880, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.15);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.15);
-        } catch(e){}
+        try { const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'square'; osc.frequency.setValueAtTime(880, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.15); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.15); } catch(e){}
     }
 
     function playJumpSound() {
         if (!audioCtx || !state.sfxEnabled) return;
-        try{
-            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'sine';
-            osc.frequency.setValueAtTime(150, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.1);
-            gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-        } catch(e){}
+        try{ const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(150, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.1); gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.1); } catch(e){}
     }
 
     function playThrusterSound(duration = 2) {
         if (!audioCtx || !state.sfxEnabled) return;
-        try {
-            const bufferSize = audioCtx.sampleRate * duration; const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
-            const noise = audioCtx.createBufferSource(); noise.buffer = buffer;
-            const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(300, audioCtx.currentTime); 
-            const gain = audioCtx.createGain();
-            gain.gain.setValueAtTime(0.01, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.6, audioCtx.currentTime + 0.5); gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-            noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination); noise.start();
-        } catch(e){}
+        try { const bufferSize = audioCtx.sampleRate * duration; const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); const data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; } const noise = audioCtx.createBufferSource(); noise.buffer = buffer; const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(300, audioCtx.currentTime); const gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.01, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.6, audioCtx.currentTime + 0.5); gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + duration); noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination); noise.start(); } catch(e){}
     }
 
     function playBuzzerSound() {
         if (!audioCtx || !state.sfxEnabled) return;
-        try {
-            const playBeep = (time, duration) => {
-                const osc1 = audioCtx.createOscillator(); const osc2 = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-                osc1.type = 'sawtooth'; osc2.type = 'square'; osc1.frequency.setValueAtTime(120, time); osc2.frequency.setValueAtTime(125, time); 
-                gain.gain.setValueAtTime(0.2, time); gain.gain.linearRampToValueAtTime(0.01, time + duration);
-                osc1.connect(gain); osc2.connect(gain); gain.connect(audioCtx.destination);
-                osc1.start(time); osc1.stop(time + duration); osc2.start(time); osc2.stop(time + duration);
-            };
-            const now = audioCtx.currentTime; playBeep(now, 0.15); playBeep(now + 0.2, 0.25);
-        } catch(e){}
+        try { const playBeep = (time, duration) => { const osc1 = audioCtx.createOscillator(); const osc2 = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc1.type = 'sawtooth'; osc2.type = 'square'; osc1.frequency.setValueAtTime(120, time); osc2.frequency.setValueAtTime(125, time); gain.gain.setValueAtTime(0.2, time); gain.gain.linearRampToValueAtTime(0.01, time + duration); osc1.connect(gain); osc2.connect(gain); gain.connect(audioCtx.destination); osc1.start(time); osc1.stop(time + duration); osc2.start(time); osc2.stop(time + duration); }; const now = audioCtx.currentTime; playBeep(now, 0.15); playBeep(now + 0.2, 0.25); } catch(e){}
     }
 
     // C64 Style Tracker Music
@@ -487,16 +424,10 @@
         if (!state.musicEnabled || !audioCtx) return;
         const playSynthNote = (midiNote, vol, decay) => {
             if (!midiNote) return; 
-            try {
-                const freq = 440 * Math.pow(2, (midiNote - 69) / 12); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-                osc.type = currentTrack === 'victory' ? 'sawtooth' : 'square'; osc.frequency.value = freq;
-                gain.gain.setValueAtTime(vol, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + decay);
-                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + decay);
-            }catch(e){}
+            try { const freq = 440 * Math.pow(2, (midiNote - 69) / 12); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = currentTrack === 'victory' ? 'sawtooth' : 'square'; osc.frequency.value = freq; gain.gain.setValueAtTime(vol, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + decay); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + decay); }catch(e){}
         };
         const lSeq = currentTrack === 'victory' ? vicLead : mainLead; const bSeq = currentTrack === 'victory' ? vicBass : mainBass; const speed = currentTrack === 'victory' ? 100 : 125;
-        playSynthNote(lSeq[noteIdx], 0.05, 0.1); playSynthNote(bSeq[noteIdx], 0.08, 0.15); 
-        noteIdx = (noteIdx + 1) % lSeq.length; musicTimer = setTimeout(playMusicLoop, speed); 
+        playSynthNote(lSeq[noteIdx], 0.05, 0.1); playSynthNote(bSeq[noteIdx], 0.08, 0.15); noteIdx = (noteIdx + 1) % lSeq.length; musicTimer = setTimeout(playMusicLoop, speed); 
     }
 
     function toggleMusic() {
@@ -513,33 +444,21 @@
 
     function createExplosion(x, y, count) {
         const colors = ['#ff007f', '#66fcf1', '#39ff14', '#ffcc00', '#ffffff'];
-        for (let i = 0; i < count; i++) {
-            const angle = Math.random() * Math.PI * 2; const speed = Math.random() * 5 + 2;
-            particles.push({ x: x, y: y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, color: colors[Math.floor(Math.random() * colors.length)], alpha: 1, decay: Math.random() * 0.02 + 0.015 });
-        }
+        for (let i = 0; i < count; i++) { const angle = Math.random() * Math.PI * 2; const speed = Math.random() * 5 + 2; particles.push({ x: x, y: y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, color: colors[Math.floor(Math.random() * colors.length)], alpha: 1, decay: Math.random() * 0.02 + 0.015 }); }
     }
 
     function updateFireworks() {
         fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
-        for (let i = particles.length - 1; i >= 0; i--) {
-            let p = particles[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.1; p.alpha -= p.decay;
-            if (p.alpha <= 0) particles.splice(i, 1); 
-            else { fxCtx.globalAlpha = p.alpha; fxCtx.fillStyle = p.color; fxCtx.beginPath(); fxCtx.arc(p.x, p.y, 3, 0, Math.PI * 2); fxCtx.fill(); }
-        }
+        for (let i = particles.length - 1; i >= 0; i--) { let p = particles[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.1; p.alpha -= p.decay; if (p.alpha <= 0) particles.splice(i, 1); else { fxCtx.globalAlpha = p.alpha; fxCtx.fillStyle = p.color; fxCtx.beginPath(); fxCtx.arc(p.x, p.y, 3, 0, Math.PI * 2); fxCtx.fill(); } }
         fxCtx.globalAlpha = 1; requestAnimationFrame(updateFireworks);
     }
     updateFireworks(); 
 
     // --- GAME PROGRESSION LOGIC ---
     function handleWordComplete() {
-        if (state.isTransitioning) return;
-        state.isTransitioning = true;
+        if (state.isTransitioning) return; state.isTransitioning = true;
         createExplosion(fxCanvas.width / 2, fxCanvas.height / 2, 40); playExplosionSound();
-        setTimeout(() => {
-            state.currentWordIndex++;
-            if (state.currentWordIndex >= spellingList.length) handleLevelComplete();
-            else { state.isTransitioning = false; loadCurrentLevel(); }
-        }, 1000); 
+        setTimeout(() => { state.currentWordIndex++; if (state.currentWordIndex >= spellingList.length) handleLevelComplete(); else { state.isTransitioning = false; loadCurrentLevel(); } }, 1000); 
     }
 
     function handleLevelComplete() {
@@ -547,15 +466,8 @@
         document.getElementById('level-indicator').innerText = "LEVEL COMPLETE!"; document.getElementById('word-progress-indicator').innerText = "";
         let burstCount = 0;
         let fwInterval = setInterval(() => {
-            createExplosion(Math.random() * fxCanvas.width, Math.random() * (fxCanvas.height * 0.8), 50); playExplosionSound();
-            burstCount++;
-            if (burstCount >= 8) { 
-                clearInterval(fwInterval);
-                setTimeout(() => {
-                    state.currentLevel++; state.currentWordIndex = 0; state.isTransitioning = false;
-                    if (state.currentLevel > 4) generateReport(); else loadCurrentLevel();
-                }, 1000);
-            }
+            createExplosion(Math.random() * fxCanvas.width, Math.random() * (fxCanvas.height * 0.8), 50); playExplosionSound(); burstCount++;
+            if (burstCount >= 8) { clearInterval(fwInterval); setTimeout(() => { state.currentLevel++; state.currentWordIndex = 0; state.isTransitioning = false; if (state.currentLevel > 4) generateReport(); else loadCurrentLevel(); }, 1000); }
         }, 350);
     }
 
@@ -574,10 +486,8 @@
     function playCurrentWordVoice() {
         if (speechQueueCount >= 2) return; speechQueueCount++;
         if (speechQueueCount >= 2) document.querySelectorAll('.sound-btn').forEach(btn => btn.disabled = true);
-
         const word = spellingList[state.currentWordIndex]; const utterance = new SpeechSynthesisUtterance(word);
         const smoothVoice = getBestVoice(); if (smoothVoice) utterance.voice = smoothVoice; utterance.rate = 0.85; utterance.pitch = 1.15; 
-
         utterance.onend = () => { speechQueueCount--; if (speechQueueCount < 2) document.querySelectorAll('.sound-btn').forEach(btn => btn.disabled = false); };
         utterance.onerror = () => { speechQueueCount--; document.querySelectorAll('.sound-btn').forEach(btn => btn.disabled = false); };
         window.speechSynthesis.speak(utterance);
@@ -709,21 +619,16 @@
     function initLevel1(word) {
         showScreen('level1'); updateWordDisplay('target-word-1', word, 0); targetArea.innerHTML = '';
         let chars = scrambleString(word); chars.forEach(char => { let el = document.createElement('div'); el.className = 'blaster-target'; el.innerText = char.toUpperCase(); el.dataset.char = char; targetArea.appendChild(el); });
-        arena.onmousemove = (e) => { 
-            if(state.isTransitioning) return; const rect = arena.getBoundingClientRect(); let x = e.clientX - rect.left; 
-            x = Math.max(30, Math.min(x, rect.width - 30)); cannon.style.left = `${x}px`; 
-        };
+        arena.onmousemove = (e) => { if(state.isTransitioning) return; const rect = arena.getBoundingClientRect(); let x = e.clientX - rect.left; x = Math.max(30, Math.min(x, rect.width - 30)); cannon.style.left = `${x}px`; };
         arena.onclick = shootCannon;
     }
     arena.addEventListener('touchmove', (e) => {
         if(state.isTransitioning) return; e.preventDefault(); 
-        const rect = arena.getBoundingClientRect(); let x = e.touches[0].clientX - rect.left; 
-        x = Math.max(30, Math.min(x, rect.width - 30)); cannon.style.left = `${x}px`;
+        const rect = arena.getBoundingClientRect(); let x = e.touches[0].clientX - rect.left; x = Math.max(30, Math.min(x, rect.width - 30)); cannon.style.left = `${x}px`;
     }, {passive: false});
     arena.addEventListener('touchstart', (e) => {
         if(state.isTransitioning) return;
-        const rect = arena.getBoundingClientRect(); let x = e.touches[0].clientX - rect.left; 
-        x = Math.max(30, Math.min(x, rect.width - 30)); cannon.style.left = `${x}px`; shootCannon();
+        const rect = arena.getBoundingClientRect(); let x = e.touches[0].clientX - rect.left; x = Math.max(30, Math.min(x, rect.width - 30)); cannon.style.left = `${x}px`; shootCannon();
     }, {passive: false});
 
     function shootCannon() {
@@ -772,8 +677,7 @@
         else { 
             input.classList.remove('shake-no-color'); void input.offsetWidth; input.classList.add('shake-no-color'); 
             playBuzzerSound(); recordMistake(); 
-            input.readOnly = true; 
-            setTimeout(() => { input.value = ''; input.readOnly = false; input.focus(); }, 400); 
+            input.readOnly = true; setTimeout(() => { input.value = ''; input.readOnly = false; input.focus(); }, 400); 
         }
     });
 
@@ -783,18 +687,15 @@
     const GRAVITY = 0.6; const FLOOR_Y = 320;
 
     window.addEventListener('keydown', e => { 
-        if (state.currentLevel === 4 && e.code === 'Space') e.preventDefault();
-        keys[e.code] = true; 
+        if (state.currentLevel === 4 && e.code === 'Space') e.preventDefault(); keys[e.code] = true; 
     });
     window.addEventListener('keyup', e => keys[e.code] = false);
 
     const bindTouch = (id, code) => {
-        const el = document.getElementById(id);
-        if(!el) return;
+        const el = document.getElementById(id); if(!el) return;
         el.addEventListener('touchstart', (e) => { e.preventDefault(); keys[code] = true; }, {passive: false});
         el.addEventListener('touchend', (e) => { e.preventDefault(); keys[code] = false; }, {passive: false});
         el.addEventListener('touchcancel', (e) => { e.preventDefault(); keys[code] = false; }, {passive: false});
-        
         el.addEventListener('mousedown', (e) => { e.preventDefault(); keys[code] = true; });
         el.addEventListener('mouseup', (e) => { e.preventDefault(); keys[code] = false; });
         el.addEventListener('mouseleave', (e) => { e.preventDefault(); keys[code] = false; });
@@ -803,10 +704,8 @@
 
     function initLevel4(word) {
         showScreen('level4'); updateWordDisplay('target-word-4', word, 0); canvas.focus(); 
-        
         player = { x: -60, y: FLOOR_Y - 40, w: 40, h: 40, vx: 0, vy: 0, speed: 5, jump: -12, isGrounded: true, visible: true };
         state.l4Intro = true; state.l4Outro = false; state.outroPhase = 0;
-        
         ship = { x: 650, y: -150, w: 80, h: 100, vy: 2, scale: 1, active: false };
 
         blocks = []; let chars = scrambleString(word); let startX = (800 - (chars.length * 70)) / 2;
@@ -934,6 +833,7 @@
             createExplosion(Math.random() * fxCanvas.width, Math.random() * (fxCanvas.height * 0.8), 60); 
             if (fwCount < 4) { playExplosionSound(); fwCount++; }
         }, 500);
+        
         setTimeout(() => { clearInterval(continuousFwInterval); }, 2500);
 
         victoryMusicTimeout = setTimeout(() => {
