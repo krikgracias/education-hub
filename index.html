@@ -317,42 +317,62 @@
     };
     let continuousFwInterval = null; let victoryMusicTimeout = null;
 
+    // --- CONFIGURATION FOR AUTOMATIC LISTS ---
+    const GITHUB_USER = "krikgracias"; // <--- CHANGE THIS
+    const GITHUB_REPO = "education-hub";
+    const SPELL_DIR = "spell-dir";
+
     // --- CSV CLOUD (SERVER) FETCH LOGIC ---
     async function loadServerManifest() {
         const cloudDropdown = document.getElementById('cloud-lists-dropdown');
+        const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${SPELL_DIR}`;
+
         try {
-            // Attempt to fetch the manifest.json file from the spell-dir folder on the server
-            const response = await fetch('spell-dir/manifest.json');
-            if (!response.ok) throw new Error('Manifest not found');
-            const files = await response.json();
+            const response = await fetch(apiUrl);
+            if (!response.ok) throw new Error('Repo or folder not found');
+            const data = await response.json();
             
-            cloudDropdown.innerHTML = '<option value="">-- SELECT SERVER CSV --</option>';
-            files.forEach(file => {
-                let opt = document.createElement('option');
-                opt.value = file; opt.innerText = file.toUpperCase();
-                cloudDropdown.appendChild(opt);
-            });
+            // Filter to only show files ending in .csv
+            const csvFiles = data.filter(item => item.name.endsWith('.csv'));
+
+            if (csvFiles.length > 0) {
+                cloudDropdown.innerHTML = '<option value="">-- SELECT SERVER CSV --</option>';
+                csvFiles.forEach(file => {
+                    let opt = document.createElement('option');
+                    opt.value = file.download_url; // Use the direct download URL from GitHub
+                    opt.innerText = file.name.toUpperCase();
+                    cloudDropdown.appendChild(opt);
+                });
+            } else {
+                cloudDropdown.innerHTML = '<option value="">(No CSVs found in folder)</option>';
+            }
         } catch(e) {
-            cloudDropdown.innerHTML = '<option value="">(No spell-dir/manifest.json found)</option>';
+            console.error(e);
+            cloudDropdown.innerHTML = '<option value="">(Check GITHUB_USER config)</option>';
         }
     }
 
     async function loadCloudCSV() {
-        const filename = document.getElementById('cloud-lists-dropdown').value;
-        if (!filename) return alert("Please select a file from the server dropdown first.");
+        const fileUrl = document.getElementById('cloud-lists-dropdown').value;
+        if (!fileUrl) return alert("Please select a file from the server dropdown first.");
+        
         try {
-            const response = await fetch(`spell-dir/${filename}`);
+            const response = await fetch(fileUrl);
             if (!response.ok) throw new Error('File not found');
             const text = await response.text();
             
             const words = text.split(/[\n,]+/).map(w => w.trim().toLowerCase()).filter(w => /^[a-z\-\']+$/.test(w));
             if (words.length > 0) {
+                // Get filename from URL for the list name input
+                const filename = fileUrl.split('/').pop();
                 words.forEach(w => { if (!spellingList.includes(w)) spellingList.push(w); });
                 document.getElementById('list-name-input').value = filename.replace('.csv', '');
                 renderWordList(); btnStartGame.disabled = false; autoSaveList();
-                alert(`Imported ${words.length} words from server: ${filename}`);
-            } else { alert("No valid words found in the server CSV."); }
-        } catch (e) { alert("Failed to load CSV from server. Check your spell-dir folder."); }
+                alert(`Imported ${words.length} words automatically from GitHub!`);
+            }
+        } catch (e) { 
+            alert("Failed to download file from GitHub."); 
+        }
     }
 
     // Call this immediately to populate the server lists if they exist
