@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Spelling Quest: Ultimate Arcade</title>
+    <style>
+        /* --- ARCADE THEME CSS --- */
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka+One&display=swap');
+
+        :root {
+            --bg-color: #0b0c10;
+            --panel-bg: #1f2833;
+            --primary: #45a29e;
+            --secondary: #66fcf1;
+            --accent: #ff007f;
+            --warning: #ffcc00;
+            --text-main: #c5c6c7;
+            --success: #39ff14;
+            --danger: #ff0033;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; touch-action: manipulation; }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(102, 252, 241, 0.05), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(255, 0, 127, 0.05), transparent 25%);
+            color: var(--text-main);
+            font-family: 'Fredoka One', cursive, sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; /* Fallback */
+            height: 100dvh; /* Dynamic viewport height for modern mobile browsers */
+            overflow: hidden;
+        }
+
+        #arcade-cabinet {
+            background-color: var(--panel-bg);
+            width: 100%; max-width: 900px; height: 100%; max-height: 750px;
+            border: 6px solid var(--primary); border-radius: 20px;
+            box-shadow: 0 0 30px rgba(69, 162, 158, 0.5), inset 0 0 20px #000;
+            display: flex; flex-direction: column; position: relative; overflow: hidden;
+        }
+
+        /* Global Audio Controls */
+        #global-controls {
+            position: absolute; top: 15px; right: 20px; z-index: 100;
+            display: flex; gap: 10px;
+        }
+
+        /* Top HUD Navigation */
+        #hud {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 20px; background: #000; border-bottom: 4px solid var(--accent);
+            font-family: 'Press Start 2P', monospace; font-size: 0.7rem; color: var(--secondary); z-index: 10;
+        }
+
+        .hud-group { display: flex; gap: 10px; align-items: center; }
+
+        #hud button {
+            background: var(--accent); border: none; color: #fff;
+            padding: 8px 12px; border-radius: 4px; font-family: 'Press Start 2P', monospace;
+            font-size: 0.6rem; cursor: pointer; box-shadow: 0 4px 0 #b30059;
+        }
+
+        #hud button:active { transform: translateY(4px); box-shadow: 0 0 0 #b30059; }
+        
+        #btn-sfx { background: var(--warning); color: #000; box-shadow: 0 4px 0 #b38f00; }
+        #btn-sfx:active { box-shadow: 0 0 0 #b38f00; }
+        #btn-music { background: #8a2be2; box-shadow: 0 4px 0 #4b0082; }
+        #btn-music:active { box-shadow: 0 0 0 #4b0082; }
+        #btn-instructor { background: var(--primary); box-shadow: 0 4px 0 #2a6f6c; }
+        #btn-instructor:active { box-shadow: 0 0 0 #2a6f6c; }
+
+        .screen {
+            display: none; flex: 1; flex-direction: column; align-items: center; 
+            justify-content: flex-start; /* Keeps items at the top so they don't get clipped */
+            padding: 20px; text-align: center; width: 100%; height: 100%; z-index: 5;
+            overflow-y: auto; /* Allows scrolling if content is too tall for the phone screen */
+        }
+
+        /* Centers content vertically on larger screens */
+        .screen::before, .screen::after { content: ''; margin: auto; }
+
+        .active-screen { display: flex; }
+
+        h1 { color: var(--secondary); font-family: 'Press Start 2P', monospace; font-size: 2rem; margin-bottom: 10px; text-shadow: 3px 3px var(--accent); line-height: 1.4;}
+        h2 { color: var(--primary); font-size: 2.2rem; margin-bottom: 10px; text-shadow: 2px 2px #000; }
+        p { color: var(--text-main); margin-bottom: 20px; font-size: 1.2rem; }
+
+        .btn {
+            background-color: var(--secondary); color: #000; border: 4px solid #fff;
+            padding: 15px 30px; font-size: 1.5rem; border-radius: 12px; cursor: pointer;
+            font-family: 'Fredoka One', cursive; box-shadow: 0 6px 0 var(--primary); transition: all 0.1s;
+            margin-top: 15px;
+        }
+
+        .btn:hover:not(:disabled) { background-color: #fff; border-color: var(--secondary); }
+        .btn:active:not(:disabled) { transform: translateY(6px); box-shadow: 0 0 0 var(--primary); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform: translateY(6px); filter: grayscale(100%); }
+
+        .sound-btn { background: var(--accent); color: white; padding: 5px 20px; font-size: 1rem; margin-bottom: 10px; box-shadow: 0 4px 0 #b30059; margin-top:0;}
+        .sound-btn:hover:not(:disabled) { background-color: #ff3399; }
+        .sound-btn:active:not(:disabled) { box-shadow: 0 0 0 #b30059; }
+
+        .word-display {
+            font-size: 3rem; letter-spacing: 10px; margin-bottom: 15px; background: rgba(0,0,0,0.5);
+            padding: 10px 30px; border-radius: 15px; border: 2px dashed var(--secondary); color: #fff;
+        }
+
+        /* --- SETUP SCREEN --- */
+        .setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; max-width: 800px; margin-bottom: 20px; }
+        .setup-panel { background: rgba(0,0,0,0.4); border: 4px solid var(--primary); border-radius: 12px; padding: 15px; text-align: left; }
+        .setup-panel h3 { color: var(--secondary); font-family: 'Press Start 2P', monospace; font-size: 0.8rem; margin-bottom: 15px; text-align: center; }
+        
+        #word-list-container {
+            background: #000; width: 100%; height: 100px; overflow-y: auto;
+            border: 2px solid var(--secondary); border-radius: 8px; margin: 10px 0; padding: 10px; text-align: left;
+        }
+        .word-tag { display: inline-block; background: var(--accent); color: white; padding: 5px 10px; border-radius: 20px; margin: 5px; font-size: 1rem; cursor: pointer;}
+        .word-tag:hover { background: var(--danger); text-decoration: line-through;}
+        
+        .setup-input { 
+            padding: 10px; font-size: 1.1rem; border-radius: 8px; border: 2px solid var(--secondary); 
+            outline: none; font-family: 'Fredoka One', cursive; width: 100%; margin-bottom: 10px; box-sizing: border-box;
+        }
+
+        .mini-btn {
+            background: var(--primary); color: white; border: none; padding: 8px 12px; border-radius: 6px; 
+            font-family: 'Fredoka One', cursive; cursor: pointer; font-size: 0.9rem; box-shadow: 0 4px 0 #2a6f6c;
+        }
+        .mini-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #2a6f6c; }
+        .mini-btn.danger { background: var(--danger); box-shadow: 0 4px 0 #991b1b; }
+        .mini-btn.danger:active { box-shadow: 0 0 0 #991b1b; }
+        .mini-btn.warning { background: var(--warning); color: black; box-shadow: 0 4px 0 #b38f00; }
+        .mini-btn.warning:active { box-shadow: 0 0 0 #b38f00; }
+        .mini-btn:disabled { filter: grayscale(100%); opacity: 0.5; box-shadow: none; transform: translateY(4px); cursor: not-allowed; }
+
+        select.setup-input { cursor: pointer; background: white; }
+
+        /* --- LEVEL 1: BUBBLE BLASTER --- */
+        #blaster-arena { position: relative; width: 100%; flex: 1; min-height: 200px; background: #000; border: 4px solid var(--primary); border-radius: 12px; overflow: hidden; cursor: crosshair; touch-action: none; margin-bottom: 20px;}
+        #blaster-target-area { position: absolute; top: 20px; left: 0; right: 0; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; padding: 0 20px; }
+        .blaster-target {
+            width: 50px; height: 50px; background: var(--warning); border-radius: 50%; color: #000; font-size: 2rem;
+            display: flex; justify-content: center; align-items: center; box-shadow: inset -5px -5px 10px rgba(0,0,0,0.3), 0 0 10px var(--warning); transition: transform 0.2s;
+        }
+        #cannon {
+            position: absolute; bottom: 10px; left: 50%; width: 60px; height: 60px; background: var(--secondary);
+            border-top-left-radius: 30px; border-top-right-radius: 30px; transform: translateX(-50%); display: flex; justify-content: center; align-items: flex-start;
+        }
+        #cannon::after { content: ''; width: 16px; height: 30px; background: var(--accent); border-radius: 8px; margin-top: -10px; }
+        .bullet { position: absolute; width: 10px; height: 25px; background: var(--success); border-radius: 5px; box-shadow: 0 0 10px var(--success); pointer-events: none; }
+
+        /* --- LEVEL 2: SCRAMBLE SLIDE --- */
+        .slot-container { display: flex; gap: 10px; margin-bottom: 40px; min-height: 60px; flex-wrap: wrap; justify-content: center; }
+        .slot {
+            width: 60px; height: 70px; border: 3px dashed var(--text-main); border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; color: #fff; background: rgba(0,0,0,0.3);
+        }
+        .tile-container { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px;}
+        .tile {
+            width: 60px; height: 70px; background-color: var(--accent); border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; color: #fff; cursor: pointer; box-shadow: 0 6px 0 #b30059; transition: transform 0.1s, opacity 0.3s;
+        }
+        .tile:active { transform: translateY(6px); box-shadow: 0 0 0 #b30059; }
+        .tile.hidden { opacity: 0; pointer-events: none; }
+
+        /* --- LEVEL 3: THE VOID --- */
+        #void-input {
+            background: rgba(0,0,0,0.5); border: 4px solid var(--secondary); color: var(--success); font-size: 3rem; text-align: center;
+            padding: 15px; width: 80%; border-radius: 15px; margin: 10px 0 20px 0; outline: none; font-family: 'Fredoka One', cursive; text-transform: uppercase;
+        }
+
+        /* --- LEVEL 4: MOON WALK & MOBILE CONTROLS --- */
+        #canvas-container { width: 100%; flex: 1; min-height: 200px; border: 4px solid var(--primary); border-radius: 12px; overflow: hidden; background: #000; position: relative; }
+        #gameCanvas { display: block; width: 100%; height: 100%; outline: none; touch-action: none; }
+        
+        #mobile-controls {
+            display: none; width: 100%; justify-content: space-between; padding: 10px 0; margin-bottom: 20px;
+        }
+        .m-btn {
+            background: rgba(255,255,255,0.1); border: 2px solid var(--secondary); color: white; font-family: 'Press Start 2P', monospace;
+            padding: 15px 25px; border-radius: 10px; font-size: 1.2rem; touch-action: manipulation; cursor: pointer;
+        }
+        .m-btn:active { background: var(--secondary); color: black; }
+        
+        /* Force virtual controls on ANY screen smaller than 800px OR detected touch devices (Valid CSS Syntax) */
+        .touch-device #mobile-controls { display: flex !important; }
+        .touch-device .desktop-hint { display: none !important; }
+
+        @media (max-width: 800px) {
+            #mobile-controls { display: flex !important; }
+            .desktop-hint { display: none !important; }
+        }
+
+        /* --- FIREWORKS CANVAS --- */
+        #fx-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-10px); } 40%, 80% { transform: translateX(10px); } }
+        .shake { animation: shake 0.4s; background-color: var(--danger) !important; border-color: var(--danger) !important; }
+        .shake-no-color { animation: shake 0.4s; }
+
+        /* Report Screen & Legend */
+        .report-card { background: #000; padding: 15px 20px; border-radius: 15px; border: 4px solid var(--secondary); width: 80%; margin-bottom: 10px; text-align: left; font-size: 1.5rem; }
+        .report-row { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        .total-grade { font-size: 4rem; color: var(--success); text-shadow: 0 0 20px var(--success); font-family: 'Press Start 2P', monospace; z-index: 10; margin-top: 10px;}
+        
+        .rank-legend {
+            background: rgba(0,0,0,0.5); border: 2px dashed var(--primary); border-radius: 10px;
+            padding: 10px; margin: 5px 0; font-family: 'Fredoka One', cursive; font-size: 0.9rem;
+            color: var(--text-muted); display: flex; flex-wrap: wrap; justify-content: center;
+            gap: 10px; width: 80%; z-index: 10;
+        }
+        .rank-legend span { background: #000; padding: 5px 10px; border-radius: 5px; border: 1px solid #333; }
+
+        /* --- MOBILE LAYOUT FIXES --- */
+        @media (max-width: 600px) {
+            h1 { font-size: 1.2rem; } h2 { font-size: 1.5rem; } .btn { padding: 10px 20px; font-size: 1.2rem; margin-top: 10px; margin-bottom: 20px; }
+            
+            #arcade-cabinet { 
+                max-height: 100dvh; height: 100dvh;
+                border-radius: 0; border: none; 
+            }
+            .screen {
+                padding: 15px 10px 30px 10px; 
+            }
+            .setup-grid { grid-template-columns: 1fr; gap: 10px;}
+            .slot, .tile { width: 45px; height: 55px; font-size: 1.8rem; } .word-display { font-size: 2rem; }
+            #cannon { width: 40px; height: 40px; } .blaster-target { width: 40px; height: 40px; font-size: 1.5rem; }
+            
+            #hud { flex-wrap: wrap; gap: 10px; justify-content: center; padding: 10px; }
+            #hud-center { width: 100%; justify-content: center; order: 3; }
+            #hud button { font-size: 0.5rem; padding: 6px 10px; }
+            
+            .total-grade { font-size: 2.5rem; } .rank-legend { font-size: 0.7rem; flex-direction: column; gap: 5px; }
+        }
+    </style>
+</head>
+<body>
+
+<script>
+    // Bulletproof Touch Detection that runs before DOM loads
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+        document.documentElement.classList.add('touch-device');
+    }
+</script>
+
+<div id="arcade-cabinet">
+    <canvas id="fx-canvas"></canvas>
+
+    <div id="hud">
+        <div class="hud-group" id="hud-left">
+            <button id="btn-back">◄ BACK</button>
+            <button id="btn-sfx" onclick="toggleSfx()">🔊 ON</button>
+            <button id="btn-music" onclick="toggleMusic()">🎵 OFF</button>
+        </div>
+        
+        <div class="hud-group" id="hud-center">
+            <span id="level-indicator">LEVEL 1</span>
+            <span id="word-progress-indicator">WORD 1/5</span>
+        </div>
+        
+        <div class="hud-group" id="hud-right">
+            <button id="btn-instructor" onclick="goToInstructor()">⚙️ SETUP</button>
+        </div>
+    </div>
+
+    <div id="screen-setup" class="screen active-screen">
+        <h1 style="margin-bottom: 0;">SPELLING QUEST</h1>
+        <p style="color: var(--secondary); margin-bottom: 10px;">INSTRUCTOR SETUP</p>
+        
+        <div class="setup-grid">
+            <div class="setup-panel">
+                <h3>BUILD & EXPORT</h3>
+                <div style="display: flex; gap: 5px;">
+                    <input type="text" id="setup-input" class="setup-input" placeholder="Type words & press Enter" autocomplete="off">
+                    <button class="mini-btn" onclick="addWord()">ADD</button>
+                </div>
+                <div id="word-list-container">
+                    <div style="color: #66fcf1; text-align: center; margin-top: 30px;">No words added yet.</div>
+                </div>
+                
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="list-name-input" class="setup-input" placeholder="Name this list..." autocomplete="off" style="margin-bottom:0; flex: 2;">
+                    <button class="mini-btn warning" style="flex: 1;" onclick="exportCSV()">📤 CSV</button>
+                </div>
+            </div>
+
+            <div class="setup-panel">
+                <h3>IMPORT & LOAD</h3>
+                <input type="file" id="csv-upload" accept=".csv" style="display: none;" onchange="importCSV(event)">
+                <button class="mini-btn warning" style="width: 100%; margin-bottom: 15px;" onclick="document.getElementById('csv-upload').click()">📥 IMPORT CSV FILE</button>
+                
+                <h3 style="margin-top: 20px;">SAVED IN BROWSER</h3>
+                <select id="saved-lists-dropdown" class="setup-input">
+                    <option value="">-- SELECT SAVED LIST --</option>
+                </select>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <button class="mini-btn" id="btn-save-list" style="flex: 1;" onclick="saveBrowserList()">💾 SAVE</button>
+                    <button class="mini-btn" id="btn-load-list" style="flex: 1;" onclick="loadBrowserList()">📂 LOAD</button>
+                    <button class="mini-btn danger" id="btn-del-list" style="flex: 1;" onclick="deleteBrowserList()">🗑️ DEL</button>
+                </div>
+                <button class="mini-btn danger" style="width: 100%; margin-top: 10px;" onclick="clearCurrentList()">CLEAR CURRENT WORDS</button>
+            </div>
+        </div>
+
+        <button class="btn" id="btn-start-game" disabled onclick="startGame()">START GAME ►</button>
+    </div>
+
+    <div id="screen-level1" class="screen">
+        <h2>L1: BUBBLE BLASTER</h2>
+        <button class="btn sound-btn" onclick="playCurrentWordVoice(); this.blur();">🔊 PLAY SOUND</button>
+        <div id="target-word-1" class="word-display"></div>
+        <div id="blaster-arena">
+            <div id="blaster-target-area"></div>
+            <div id="cannon"></div>
+        </div>
+    </div>
+
+    <div id="screen-level2" class="screen">
+        <h2>L2: SCRAMBLE SLIDE</h2>
+        <button class="btn sound-btn" onclick="playCurrentWordVoice(); this.blur();">🔊 PLAY SOUND</button>
+        <div id="target-word-2" class="word-display"></div>
+        <div class="slot-container" id="slide-slots"></div>
+        <div class="tile-container" id="slide-tiles"></div>
+    </div>
+
+    <div id="screen-level3" class="screen">
+        <h2>L3: THE VOID</h2>
+        <p style="margin-bottom: 5px;">Listen closely...</p>
+        <button class="btn sound-btn" onclick="playCurrentWordVoice(); this.blur();">🔊 PLAY SOUND</button>
+        <input type="text" id="void-input" placeholder="..." autocomplete="off">
+        <button class="btn" id="btn-submit-void">SUBMIT</button>
+    </div>
+
+    <div id="screen-level4" class="screen" style="padding: 10px;">
+        <h2>L4: MOON WALK</h2>
+        <button class="btn sound-btn" onclick="playCurrentWordVoice(); this.blur();">🔊 PLAY SOUND</button>
+        <div id="target-word-4" class="word-display" style="font-size: 2rem; margin-bottom: 5px; padding: 5px 20px;"></div>
+        <div id="canvas-container">
+            <canvas id="gameCanvas" width="800" height="400" tabindex="0"></canvas>
+        </div>
+        <p class="desktop-hint" style="font-size: 0.8rem; margin: 5px 0 0 0;">USE [◀] [▶] TO MOVE, [SPACE] TO JUMP. HEADBUTT THE BLOCKS!</p>
+        
+        <div id="mobile-controls">
+            <div style="display: flex; gap: 15px;">
+                <button class="m-btn" id="m-btn-left">◀</button>
+                <button class="m-btn" id="m-btn-right">▶</button>
+            </div>
+            <button class="m-btn" id="m-btn-jump">JUMP</button>
+        </div>
+    </div>
+
+    <div id="screen-report" class="screen">
+        <h1 style="margin-bottom: 5px;">MISSION COMPLETE</h1>
+        <div class="report-card">
+            <div class="report-row"><span>Level 1 (Blaster):</span> <strong id="score-l1" style="color:var(--primary)"></strong></div>
+            <div class="report-row"><span>Level 2 (Scramble):</span> <strong id="score-l2" style="color:var(--secondary)"></strong></div>
+            <div class="report-row"><span>Level 3 (The Void):</span> <strong id="score-l3" style="color:var(--accent)"></strong></div>
+            <div class="report-row"><span>Level 4 (Moon Walk):</span> <strong id="score-l4" style="color:var(--warning)"></strong></div>
+        </div>
+        
+        <div class="total-grade" id="final-grade">SUPER RANK</div>
+        
+        <div class="rank-legend">
+            <span><span style="color:var(--secondary)">SUPER:</span> 97-100</span>
+            <span><span style="color:var(--success)">A RANK:</span> 90-96</span>
+            <span><span style="color:var(--primary)">B RANK:</span> 80-89</span>
+            <span><span style="color:var(--warning)">C RANK:</span> 70-79</span>
+            <span><span style="color:var(--danger)">F:</span> < 70</span>
+        </div>
+
+        <button class="btn" style="margin-top: 10px; z-index: 10;" onclick="restartGame()">PLAY AGAIN</button>
+    </div>
+</div>
+
+<script>
+    // --- STATE MANAGEMENT ---
+    let spellingList = [];
+    let state = {
+        currentLevel: 1, currentWordIndex: 0, expectedLetterIndex: 0, mistakes: { 1: 0, 2: 0, 3: 0, 4: 0 },
+        isTransitioning: false, l4Intro: false, l4Outro: false, outroPhase: 0,
+        musicEnabled: false, sfxEnabled: true
+    };
+    let continuousFwInterval = null;
+    let victoryMusicTimeout = null;
+
+    // --- CSV IMPORT / EXPORT LOGIC ---
+    function exportCSV() {
+        if (spellingList.length === 0) return alert("No words to export!");
+        let listName = document.getElementById('list-name-input').value.trim() || "spelling_list";
+        const csvContent = spellingList.join(","); const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob); const link = document.createElement("a");
+        link.setAttribute("href", url); link.setAttribute("download", `${listName}.csv`);
+        link.style.visibility = 'hidden'; document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+    function importCSV(event) {
+        const file = event.target.files[0]; if (!file) return; const reader = new FileReader();
+        reader.onload = function(e) {
+            const text = e.target.result; const words = text.split(/[\n,]+/).map(w => w.trim().toLowerCase()).filter(w => /^[a-z]+$/.test(w));
+            if (words.length > 0) {
+                words.forEach(w => { if (!spellingList.includes(w)) spellingList.push(w); });
+                document.getElementById('list-name-input').value = file.name.replace('.csv', '');
+                renderWordList(); btnStartGame.disabled = false; autoSaveList();
+                alert(`Imported ${words.length} valid words from CSV.`);
+            } else { alert("No valid words found in CSV."); }
+            document.getElementById('csv-upload').value = "";
+        }; reader.readAsText(file);
+    }
+
+    // --- AUDIO SYSTEM (Synthesizers & Effects) ---
+    let audioCtx;
+    function initAudio() {
+        try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); } catch(e) {}
+    }
+
+    function toggleSfx() {
+        initAudio(); state.sfxEnabled = !state.sfxEnabled;
+        const btn = document.getElementById('btn-sfx'); btn.innerText = state.sfxEnabled ? "🔊 ON" : "🔇 OFF"; btn.style.filter = state.sfxEnabled ? "none" : "grayscale(100%)";
+    }
+
+    function playExplosionSound() {
+        if (!audioCtx || !state.sfxEnabled) return;
+        try {
+            const bufferSize = audioCtx.sampleRate * 0.4; const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
+            const noise = audioCtx.createBufferSource(); noise.buffer = buffer;
+            const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(1000, audioCtx.currentTime); filter.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+            const gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.5, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination); noise.start();
+        } catch(e){}
+    }
+
+    function playLaserSound() {
+        if (!audioCtx || !state.sfxEnabled) return;
+        try {
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'square'; 
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.15);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+        } catch(e){}
+    }
+
+    function playJumpSound() {
+        if (!audioCtx || !state.sfxEnabled) return;
+        try{
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'sine';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        } catch(e){}
+    }
+
+    function playThrusterSound(duration = 2) {
+        if (!audioCtx || !state.sfxEnabled) return;
+        try {
+            const bufferSize = audioCtx.sampleRate * duration; const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
+            const noise = audioCtx.createBufferSource(); noise.buffer = buffer;
+            const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(300, audioCtx.currentTime); 
+            const gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(0.01, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.6, audioCtx.currentTime + 0.5); gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination); noise.start();
+        } catch(e){}
+    }
+
+    function playBuzzerSound() {
+        if (!audioCtx || !state.sfxEnabled) return;
+        try {
+            const playBeep = (time, duration) => {
+                const osc1 = audioCtx.createOscillator(); const osc2 = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc1.type = 'sawtooth'; osc2.type = 'square'; osc1.frequency.setValueAtTime(120, time); osc2.frequency.setValueAtTime(125, time); 
+                gain.gain.setValueAtTime(0.2, time); gain.gain.linearRampToValueAtTime(0.01, time + duration);
+                osc1.connect(gain); osc2.connect(gain); gain.connect(audioCtx.destination);
+                osc1.start(time); osc1.stop(time + duration); osc2.start(time); osc2.stop(time + duration);
+            };
+            const now = audioCtx.currentTime; playBeep(now, 0.15); playBeep(now + 0.2, 0.25);
+        } catch(e){}
+    }
+
+    // C64 Style Tracker Music
+    let musicTimer = null; let noteIdx = 0; let currentTrack = 'main';
+    const mainLead = [60, 64, 67, 72, 67, 64, 55, 59, 62, 67, 62, 59]; const mainBass = [36, 36, 36, 36, 36, 36, 31, 31, 31, 31, 31, 31];
+    const vicLead = [67, 67, 67, 0, 70, 0, 72, 0, 67, 67, 67, 0, 74, 0, 72, 0]; const vicBass = [43, 43, 43, 43, 46, 46, 48, 48, 43, 43, 43, 43, 50, 50, 48, 48];
+
+    function playMusicLoop() {
+        if (!state.musicEnabled || !audioCtx) return;
+        const playSynthNote = (midiNote, vol, decay) => {
+            if (!midiNote) return; 
+            try {
+                const freq = 440 * Math.pow(2, (midiNote - 69) / 12); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.type = currentTrack === 'victory' ? 'sawtooth' : 'square'; osc.frequency.value = freq;
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + decay);
+                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + decay);
+            }catch(e){}
+        };
+        const lSeq = currentTrack === 'victory' ? vicLead : mainLead; const bSeq = currentTrack === 'victory' ? vicBass : mainBass; const speed = currentTrack === 'victory' ? 100 : 125;
+        playSynthNote(lSeq[noteIdx], 0.05, 0.1); playSynthNote(bSeq[noteIdx], 0.08, 0.15); 
+        noteIdx = (noteIdx + 1) % lSeq.length; musicTimer = setTimeout(playMusicLoop, speed); 
+    }
+
+    function toggleMusic() {
+        initAudio(); state.musicEnabled = !state.musicEnabled;
+        const btn = document.getElementById('btn-music'); btn.innerText = state.musicEnabled ? "🎵 ON" : "🎵 OFF"; btn.style.filter = state.musicEnabled ? "none" : "grayscale(100%)";
+        if (state.musicEnabled) { noteIdx = 0; playMusicLoop(); } else { clearTimeout(musicTimer); }
+    }
+
+    // --- FIREWORKS ENGINE ---
+    const fxCanvas = document.getElementById('fx-canvas'); const fxCtx = fxCanvas.getContext('2d');
+    let particles = [];
+    function resizeFx() { fxCanvas.width = fxCanvas.offsetWidth; fxCanvas.height = fxCanvas.offsetHeight; }
+    window.addEventListener('resize', resizeFx); resizeFx();
+
+    function createExplosion(x, y, count) {
+        const colors = ['#ff007f', '#66fcf1', '#39ff14', '#ffcc00', '#ffffff'];
+        for (let i = 0; i < count; i++) {
+            const angle = Math.random() * Math.PI * 2; const speed = Math.random() * 5 + 2;
+            particles.push({ x: x, y: y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, color: colors[Math.floor(Math.random() * colors.length)], alpha: 1, decay: Math.random() * 0.02 + 0.015 });
+        }
+    }
+
+    function updateFireworks() {
+        fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+        for (let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.1; p.alpha -= p.decay;
+            if (p.alpha <= 0) particles.splice(i, 1); 
+            else { fxCtx.globalAlpha = p.alpha; fxCtx.fillStyle = p.color; fxCtx.beginPath(); fxCtx.arc(p.x, p.y, 3, 0, Math.PI * 2); fxCtx.fill(); }
+        }
+        fxCtx.globalAlpha = 1; requestAnimationFrame(updateFireworks);
+    }
+    updateFireworks(); 
+
+    // --- GAME PROGRESSION LOGIC ---
+    function handleWordComplete() {
+        if (state.isTransitioning) return;
+        state.isTransitioning = true;
+        createExplosion(fxCanvas.width / 2, fxCanvas.height / 2, 40); playExplosionSound();
+        setTimeout(() => {
+            state.currentWordIndex++;
+            if (state.currentWordIndex >= spellingList.length) handleLevelComplete();
+            else { state.isTransitioning = false; loadCurrentLevel(); }
+        }, 1000); 
+    }
+
+    function handleLevelComplete() {
+        clearInterval(l1BulletInterval); if (l4ReqAnim) cancelAnimationFrame(l4ReqAnim);
+        document.getElementById('level-indicator').innerText = "LEVEL COMPLETE!"; document.getElementById('word-progress-indicator').innerText = "";
+        let burstCount = 0;
+        let fwInterval = setInterval(() => {
+            createExplosion(Math.random() * fxCanvas.width, Math.random() * (fxCanvas.height * 0.8), 50); playExplosionSound();
+            burstCount++;
+            if (burstCount >= 8) { 
+                clearInterval(fwInterval);
+                setTimeout(() => {
+                    state.currentLevel++; state.currentWordIndex = 0; state.isTransitioning = false;
+                    if (state.currentLevel > 4) generateReport(); else loadCurrentLevel();
+                }, 1000);
+            }
+        }, 350);
+    }
+
+    // --- BROWSER TEXT-TO-SPEECH ---
+    let availableVoices = [];
+    function populateVoices() { availableVoices = window.speechSynthesis.getVoices(); }
+    populateVoices(); if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = populateVoices;
+
+    function getBestVoice() {
+        if (availableVoices.length === 0) return null;
+        let best = availableVoices.find(v => v.name.includes("Google") && v.lang.includes("en")) || availableVoices.find(v => v.name.includes("Natural") && v.lang.includes("en")) || availableVoices.find(v => v.name.includes("Samantha") || v.name.includes("Daniel"));
+        return best || availableVoices.find(v => v.lang === 'en-US' || v.lang === 'en-GB') || availableVoices[0];
+    }
+
+    let speechQueueCount = 0;
+    function playCurrentWordVoice() {
+        if (speechQueueCount >= 2) return; speechQueueCount++;
+        if (speechQueueCount >= 2) document.querySelectorAll('.sound-btn').forEach(btn => btn.disabled = true);
+
+        const word = spellingList[state.currentWordIndex]; const utterance = new SpeechSynthesisUtterance(word);
+        const smoothVoice = getBestVoice(); if (smoothVoice) utterance.voice = smoothVoice; utterance.rate = 0.85; utterance.pitch = 1.15; 
+
+        utterance.onend = () => { speechQueueCount--; if (speechQueueCount < 2) document.querySelectorAll('.sound-btn').forEach(btn => btn.disabled = false); };
+        utterance.onerror = () => { speechQueueCount--; document.querySelectorAll('.sound-btn').forEach(btn => btn.disabled = false); };
+        window.speechSynthesis.speak(utterance);
+    }
+
+    // --- DOM Elements ---
+    const screens = { setup: document.getElementById('screen-setup'), level1: document.getElementById('screen-level1'), level2: document.getElementById('screen-level2'), level3: document.getElementById('screen-level3'), level4: document.getElementById('screen-level4'), report: document.getElementById('screen-report') };
+    const setupInput = document.getElementById('setup-input'); const wordListContainer = document.getElementById('word-list-container'); const btnStartGame = document.getElementById('btn-start-game');
+
+    // --- LOCAL STORAGE LOGIC (BROWSER SAFE) ---
+    const LIST_PREFIX = 'sq_list_';
+    function isStorageAvailable() { try { localStorage.setItem('__test__', '1'); localStorage.removeItem('__test__'); return true; } catch(e) { return false; } }
+    const storageOK = isStorageAvailable();
+
+    function autoSaveList() { if(!storageOK) return; localStorage.setItem('sq_autosave', JSON.stringify(spellingList)); }
+
+    function addWord() {
+        try { initAudio(); }catch(e){} 
+        const rawInput = setupInput.value.trim().toLowerCase(); if (!rawInput) return;
+        const words = rawInput.split(/[\s,]+/).filter(w => /^[a-z\-\']+$/.test(w));
+        let addedCount = 0;
+        words.forEach(w => { if (!spellingList.includes(w)) { spellingList.push(w); addedCount++; } });
+        if (addedCount > 0) { renderWordList(); setupInput.value = ''; btnStartGame.disabled = false; autoSaveList(); } 
+        else { alert("Please enter valid words (letters only). Duplicates are ignored."); }
+        setupInput.focus();
+    }
+    
+    function removeWord(wordToRemove) { spellingList = spellingList.filter(w => w !== wordToRemove); renderWordList(); autoSaveList(); if(spellingList.length === 0) btnStartGame.disabled = true; }
+    function clearCurrentList() { spellingList = []; document.getElementById('list-name-input').value = ''; renderWordList(); btnStartGame.disabled = true; autoSaveList(); }
+    
+    function renderWordList() {
+        if (spellingList.length === 0) { wordListContainer.innerHTML = '<div style="color: #66fcf1; text-align: center; margin-top: 30px;">No words added yet.</div>'; return; }
+        wordListContainer.innerHTML = spellingList.map(w => `<span class="word-tag" onclick="removeWord('${w}')" title="Click to remove">${w}</span>`).join('');
+    }
+    
+    function updateDropdown() {
+        if(!storageOK) {
+            document.getElementById('btn-save-list').disabled = true; document.getElementById('btn-load-list').disabled = true; document.getElementById('btn-del-list').disabled = true;
+            document.getElementById('saved-lists-dropdown').innerHTML = '<option>BROWSER SAVING BLOCKED</option>'; return;
+        }
+        try {
+            const select = document.getElementById('saved-lists-dropdown'); select.innerHTML = '<option value="">-- SELECT SAVED LIST --</option>';
+            for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i);
+                if (key.startsWith(LIST_PREFIX)) { let listName = key.replace(LIST_PREFIX, ''); let opt = document.createElement('option'); opt.value = listName; opt.innerText = listName.toUpperCase(); select.appendChild(opt); }
+            }
+        }catch(e){}
+    }
+    function saveBrowserList() {
+        if(!storageOK) return; const listName = document.getElementById('list-name-input').value.trim();
+        if (!listName) return alert('Please enter a name for this list before saving.');
+        if (spellingList.length === 0) return alert('Cannot save an empty list.');
+        try{ localStorage.setItem(LIST_PREFIX + listName, JSON.stringify(spellingList)); updateDropdown(); alert(`List "${listName}" saved to browser successfully!`); }catch(e){ alert("Failed to save to browser."); }
+    }
+    function loadBrowserList() {
+        if(!storageOK) return; const listName = document.getElementById('saved-lists-dropdown').value;
+        if (!listName) return alert('Please select a list from the dropdown first.');
+        try{ const data = localStorage.getItem(LIST_PREFIX + listName); if (data) { spellingList = JSON.parse(data); document.getElementById('list-name-input').value = listName; renderWordList(); btnStartGame.disabled = false; autoSaveList(); } }catch(e){}
+    }
+    function deleteBrowserList() {
+        if(!storageOK) return; const select = document.getElementById('saved-lists-dropdown'); const listName = select.value;
+        if (!listName) return alert('Please select a list to delete.');
+        if (confirm(`Are you sure you want to delete the list "${listName}" from the browser?`)) { try{ localStorage.removeItem(LIST_PREFIX + listName); updateDropdown(); if(document.getElementById('list-name-input').value === listName){ document.getElementById('list-name-input').value = ''; } }catch(e){} }
+    }
+    
+    try{ if(storageOK) { updateDropdown(); let auto = localStorage.getItem('sq_autosave'); if(auto) { spellingList = JSON.parse(auto); if(spellingList.length > 0) { renderWordList(); btnStartGame.disabled = false; } } } }catch(e){}
+    setupInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') addWord(); });
+
+    // Navigation & Global Inputs
+    document.getElementById('btn-back').addEventListener('click', () => { if (state.currentWordIndex > 0 && !state.isTransitioning) { state.currentWordIndex--; loadCurrentLevel(); } });
+    document.addEventListener('keydown', (e) => {
+        if (state.isTransitioning || screens.setup.classList.contains('active-screen')) return;
+        if (e.key === 'Enter' && screens.level3.classList.contains('active-screen')) document.getElementById('btn-submit-void').click();
+    });
+
+    // Screen Management
+    function showScreen(screenKey) {
+        Object.values(screens).forEach(s => s.classList.remove('active-screen'));
+        screens[screenKey].classList.add('active-screen');
+        const isGameplay = (screenKey !== 'setup' && screenKey !== 'report');
+        document.getElementById('hud').style.display = 'flex';
+        document.getElementById('hud-center').style.visibility = isGameplay ? 'visible' : 'hidden';
+        document.getElementById('btn-back').style.display = isGameplay ? 'block' : 'none';
+        document.getElementById('btn-instructor').style.display = isGameplay ? 'none' : 'block';
+    }
+
+    function goToInstructor() {
+        clearInterval(continuousFwInterval); clearTimeout(victoryMusicTimeout); particles = []; state.isTransitioning = false; state.l4Outro = false; currentTrack = 'main';
+        clearInterval(l1BulletInterval); if (l4ReqAnim) cancelAnimationFrame(l4ReqAnim); 
+        if (state.musicEnabled) { clearTimeout(musicTimer); noteIdx = 0; playMusicLoop(); }
+        showScreen('setup');
+    }
+
+    function startGame() {
+        spellingList.sort(() => Math.random() - 0.5); 
+        try{ initAudio(); populateVoices(); }catch(e){}
+        state.currentLevel = 1; state.currentWordIndex = 0; state.mistakes = { 1: 0, 2: 0, 3: 0, 4: 0 }; state.isTransitioning = false; state.l4Outro = false; currentTrack = 'main';
+        loadCurrentLevel();
+    }
+    
+    function restartGame() { 
+        clearInterval(continuousFwInterval); clearTimeout(victoryMusicTimeout); particles = []; currentTrack = 'main';
+        if (state.musicEnabled) { clearTimeout(musicTimer); noteIdx = 0; playMusicLoop(); }
+        startGame(); 
+    }
+
+    function loadCurrentLevel() {
+        state.expectedLetterIndex = 0; 
+        document.getElementById('level-indicator').innerText = `LEVEL ${state.currentLevel}`; 
+        document.getElementById('word-progress-indicator').innerText = `WORD ${state.currentWordIndex + 1} OF ${spellingList.length}`;
+        document.getElementById('btn-back').style.visibility = (state.currentWordIndex === 0) ? 'hidden' : 'visible';
+        
+        const word = spellingList[state.currentWordIndex];
+        clearInterval(l1BulletInterval); if (l4ReqAnim) cancelAnimationFrame(l4ReqAnim);
+
+        if (state.currentLevel === 1) initLevel1(word);
+        if (state.currentLevel === 2) initLevel2(word);
+        if (state.currentLevel === 3) initLevel3(word);
+        if (state.currentLevel === 4) initLevel4(word);
+
+        setTimeout(playCurrentWordVoice, 300);
+    }
+    function recordMistake() { state.mistakes[state.currentLevel]++; }
+    function updateWordDisplay(id, word, index) { let display = ""; for (let i = 0; i < word.length; i++) display += (i < index) ? word[i].toUpperCase() : "_"; document.getElementById(id).innerText = display; }
+    function scrambleString(str) { return str.split('').sort(() => Math.random() - 0.5); }
+
+    // --- LEVEL 1: BUBBLE BLASTER (TOUCH COMPATIBLE) ---
+    let l1BulletInterval = null; let isShooting = false; const arena = document.getElementById('blaster-arena'); const cannon = document.getElementById('cannon'); const targetArea = document.getElementById('blaster-target-area');
+    function initLevel1(word) {
+        showScreen('level1'); updateWordDisplay('target-word-1', word, 0); targetArea.innerHTML = '';
+        let chars = scrambleString(word); chars.forEach(char => { let el = document.createElement('div'); el.className = 'blaster-target'; el.innerText = char.toUpperCase(); el.dataset.char = char; targetArea.appendChild(el); });
+        arena.onmousemove = (e) => { 
+            if(state.isTransitioning) return; const rect = arena.getBoundingClientRect(); let x = e.clientX - rect.left; 
+            x = Math.max(30, Math.min(x, rect.width - 30)); cannon.style.left = `${x}px`; 
+        };
+        arena.onclick = shootCannon;
+    }
+    arena.addEventListener('touchmove', (e) => {
+        if(state.isTransitioning) return; e.preventDefault(); 
+        const rect = arena.getBoundingClientRect(); let x = e.touches[0].clientX - rect.left; 
+        x = Math.max(30, Math.min(x, rect.width - 30)); cannon.style.left = `${x}px`;
+    }, {passive: false});
+    arena.addEventListener('touchstart', (e) => {
+        if(state.isTransitioning) return;
+        const rect = arena.getBoundingClientRect(); let x = e.touches[0].clientX - rect.left; 
+        x = Math.max(30, Math.min(x, rect.width - 30)); cannon.style.left = `${x}px`; shootCannon();
+    }, {passive: false});
+
+    function shootCannon() {
+        if (isShooting || state.isTransitioning) return; 
+        isShooting = true; playLaserSound(); 
+
+        const bullet = document.createElement('div'); bullet.className = 'bullet'; bullet.style.left = cannon.style.left; bullet.style.bottom = '60px'; arena.appendChild(bullet);
+        let bottomPos = 60;
+        l1BulletInterval = setInterval(() => {
+            bottomPos += 15; bullet.style.bottom = `${bottomPos}px`;
+            if (bottomPos > arena.clientHeight) { clearInterval(l1BulletInterval); bullet.remove(); isShooting = false; return; }
+            const brect = bullet.getBoundingClientRect(); const targets = document.querySelectorAll('.blaster-target');
+            for (let t of targets) {
+                if (t.style.visibility === 'hidden') continue;
+                const trect = t.getBoundingClientRect(); if (!(brect.right < trect.left || brect.left > trect.right || brect.bottom < trect.top || brect.top > trect.bottom)) { clearInterval(l1BulletInterval); bullet.remove(); isShooting = false; handleBlasterHit(t); break; }
+            }
+        }, 20);
+    }
+    function handleBlasterHit(targetEl) {
+        const word = spellingList[state.currentWordIndex]; const expected = word[state.expectedLetterIndex];
+        if (targetEl.dataset.char === expected) { targetEl.style.visibility = 'hidden'; state.expectedLetterIndex++; updateWordDisplay('target-word-1', word, state.expectedLetterIndex); if (state.expectedLetterIndex === word.length) handleWordComplete(); } 
+        else { targetEl.style.background = 'var(--danger)'; setTimeout(() => targetEl.style.background = 'var(--warning)', 300); recordMistake(); }
+    }
+
+    // --- LEVEL 2: SCRAMBLE SLIDE ---
+    function initLevel2(word) {
+        showScreen('level2'); updateWordDisplay('target-word-2', word, 0);
+        const slotContainer = document.getElementById('slide-slots'); const tileContainer = document.getElementById('slide-tiles'); slotContainer.innerHTML = ''; tileContainer.innerHTML = '';
+        for(let i=0; i<word.length; i++) { let slot = document.createElement('div'); slot.className = 'slot'; slotContainer.appendChild(slot); }
+        let chars = scrambleString(word); chars.forEach((char) => { let tile = document.createElement('div'); tile.className = 'tile'; tile.innerText = char.toUpperCase(); tile.onclick = () => handleTileClick(tile, char); tileContainer.appendChild(tile); });
+    }
+    function handleTileClick(tile, char) {
+        if(state.isTransitioning) return;
+        const word = spellingList[state.currentWordIndex];
+        if (char === word[state.expectedLetterIndex]) { tile.classList.add('hidden'); const slots = document.querySelectorAll('.slot'); slots[state.expectedLetterIndex].innerText = char.toUpperCase(); slots[state.expectedLetterIndex].style.background = 'var(--primary)'; slots[state.expectedLetterIndex].style.borderColor = 'var(--primary)'; state.expectedLetterIndex++; updateWordDisplay('target-word-2', word, state.expectedLetterIndex); if (state.expectedLetterIndex === word.length) handleWordComplete(); } 
+        else { tile.classList.remove('shake'); void tile.offsetWidth; tile.classList.add('shake'); recordMistake(); }
+    }
+
+    // --- LEVEL 3: THE VOID ---
+    function initLevel3(word) { 
+        showScreen('level3'); const input = document.getElementById('void-input'); input.value = ''; input.disabled = false; input.style.borderColor = 'var(--secondary)'; input.style.color = 'var(--success)'; input.focus(); 
+    }
+    document.getElementById('btn-submit-void').addEventListener('click', () => {
+        if(state.isTransitioning) return; const word = spellingList[state.currentWordIndex]; const input = document.getElementById('void-input');
+        if (input.value.trim().toLowerCase() === word) { input.style.borderColor = 'var(--success)'; handleWordComplete(); } 
+        else { 
+            input.classList.remove('shake-no-color'); void input.offsetWidth; input.classList.add('shake-no-color'); 
+            playBuzzerSound(); recordMistake(); 
+            input.readOnly = true; 
+            setTimeout(() => { input.value = ''; input.readOnly = false; input.focus(); }, 400); 
+        }
+    });
+
+    // --- LEVEL 4: MOON WALK & MOBILE CONTROLS ---
+    const canvas = document.getElementById('gameCanvas'); const ctx = canvas.getContext('2d');
+    let l4ReqAnim; let keys = {}; let player, blocks, ship;
+    const GRAVITY = 0.6; const FLOOR_Y = 320;
+
+    window.addEventListener('keydown', e => { 
+        if (state.currentLevel === 4 && e.code === 'Space') e.preventDefault();
+        keys[e.code] = true; 
+    });
+    window.addEventListener('keyup', e => keys[e.code] = false);
+
+    const bindTouch = (id, code) => {
+        const el = document.getElementById(id);
+        if(!el) return;
+        el.addEventListener('touchstart', (e) => { e.preventDefault(); keys[code] = true; }, {passive: false});
+        el.addEventListener('touchend', (e) => { e.preventDefault(); keys[code] = false; }, {passive: false});
+        el.addEventListener('touchcancel', (e) => { e.preventDefault(); keys[code] = false; }, {passive: false});
+        
+        el.addEventListener('mousedown', (e) => { e.preventDefault(); keys[code] = true; });
+        el.addEventListener('mouseup', (e) => { e.preventDefault(); keys[code] = false; });
+        el.addEventListener('mouseleave', (e) => { e.preventDefault(); keys[code] = false; });
+    };
+    bindTouch('m-btn-left', 'ArrowLeft'); bindTouch('m-btn-right', 'ArrowRight'); bindTouch('m-btn-jump', 'Space');
+
+    function initLevel4(word) {
+        showScreen('level4'); updateWordDisplay('target-word-4', word, 0); canvas.focus(); 
+        
+        player = { x: -60, y: FLOOR_Y - 40, w: 40, h: 40, vx: 0, vy: 0, speed: 5, jump: -12, isGrounded: true, visible: true };
+        state.l4Intro = true; state.l4Outro = false; state.outroPhase = 0;
+        
+        ship = { x: 650, y: -150, w: 80, h: 100, vy: 2, scale: 1, active: false };
+
+        blocks = []; let chars = scrambleString(word); let startX = (800 - (chars.length * 70)) / 2;
+        chars.forEach((char, i) => { blocks.push({ x: startX + (i * 70), y: 150, w: 50, h: 50, char: char, hit: false, color: '#ffcc00' }); });
+        
+        gameLoop();
+    }
+
+    function checkAABB(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
+
+    function drawCustomSpaceman(x, y) {
+        if (!player.visible) return;
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(x, y, 40, 40); 
+        ctx.fillStyle = '#66fcf1'; ctx.fillRect(x + 20, y + 8, 16, 12); 
+        ctx.fillStyle = '#45a29e'; ctx.fillRect(x - 8, y + 10, 8, 20); 
+        ctx.fillStyle = '#000000'; ctx.fillRect(x + 15, y + 30, 10, 10);
+    }
+
+    function drawShip(s) {
+        if (!s.active) return;
+        ctx.save();
+        ctx.translate(s.x + s.w/2, s.y + s.h/2); ctx.scale(s.scale, s.scale); ctx.translate(-(s.x + s.w/2), -(s.y + s.h/2));
+        
+        ctx.fillStyle = '#cccccc'; ctx.fillRect(s.x + 20, s.y, 40, 60); 
+        ctx.beginPath(); ctx.moveTo(s.x + 20, s.y); ctx.lineTo(s.x + 40, s.y - 40); ctx.lineTo(s.x + 60, s.y); ctx.fill(); 
+        ctx.fillRect(s.x, s.y + 40, 20, 40); ctx.fillRect(s.x + 60, s.y + 40, 20, 40); 
+        ctx.fillStyle = '#66fcf1'; ctx.beginPath(); ctx.arc(s.x + 40, s.y + 30, 10, 0, Math.PI*2); ctx.fill(); 
+
+        if (s.vy !== 0 || state.outroPhase === 4) {
+            ctx.fillStyle = Math.random() > 0.5 ? '#ffcc00' : '#ff007f';
+            ctx.beginPath(); ctx.moveTo(s.x + 25, s.y + 60); ctx.lineTo(s.x + 40, s.y + 60 + Math.random()*30 + 20); ctx.lineTo(s.x + 55, s.y + 60); ctx.fill();
+        }
+        ctx.restore();
+    }
+
+    function gameLoop() {
+        if (state.currentLevel !== 4) return;
+        ctx.fillStyle = "#000022"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#fff"; ctx.fillRect(100, 50, 2, 2); ctx.fillRect(300, 100, 2, 2); ctx.fillRect(600, 80, 2, 2);
+        ctx.fillStyle = "#45a29e"; ctx.fillRect(0, FLOOR_Y, canvas.width, canvas.height - FLOOR_Y);
+
+        if (state.l4Outro) {
+            if (state.outroPhase === 0) {
+                ship.active = true; playThrusterSound(2.5); state.outroPhase = 1; player.vx = 0;
+            } else if (state.outroPhase === 1) {
+                ship.y += ship.vy; 
+                if (ship.y + ship.h >= FLOOR_Y) { ship.y = FLOOR_Y - ship.h; ship.vy = 0; state.outroPhase = 2; }
+            } else if (state.outroPhase === 2) {
+                player.vx = 2; 
+                if (player.x > ship.x + 10) { 
+                    player.visible = false; player.vx = 0; state.outroPhase = 3; 
+                    setTimeout(() => { playThrusterSound(3); state.outroPhase = 4; }, 1000); 
+                }
+            } else if (state.outroPhase === 3) {
+                player.vx = 0; 
+            } else if (state.outroPhase === 4) {
+                ship.y -= 4; ship.scale -= 0.008; 
+                if (ship.scale <= 0) { state.outroPhase = 5; handleWordComplete(); }
+            }
+        } 
+        else if (state.l4Intro) {
+            player.vx = 3; if (player.x >= 150) { player.vx = 0; state.l4Intro = false; }
+            ctx.fillStyle = 'var(--secondary)'; ctx.font = '30px Press Start 2P'; ctx.fillText("GET READY!", 250, 100);
+        } 
+        else if (!state.isTransitioning) {
+            if (keys['ArrowLeft']) player.vx = -player.speed; else if (keys['ArrowRight']) player.vx = player.speed; else player.vx = 0;
+            if (keys['Space'] && player.isGrounded) { player.vy = player.jump; player.isGrounded = false; playJumpSound(); }
+        } else { player.vx = 0; }
+
+        if (!state.l4Outro || state.outroPhase < 3) {
+            player.vy += GRAVITY; player.x += player.vx; player.y += player.vy;
+            if(player.x < 0) player.x = 0; if(player.x + player.w > canvas.width) player.x = canvas.width - player.w;
+            if (player.y + player.h >= FLOOR_Y) { player.y = FLOOR_Y - player.h; player.vy = 0; player.isGrounded = true; }
+        }
+
+        const word = spellingList[state.currentWordIndex];
+        blocks.forEach(b => {
+            if (!b.hit) {
+                ctx.fillStyle = b.color; ctx.fillRect(b.x, b.y, b.w, b.h);
+                ctx.fillStyle = "#000"; ctx.font = "bold 30px Fredoka One"; ctx.fillText(b.char.toUpperCase(), b.x + 12, b.y + 35);
+                if (!state.isTransitioning && !state.l4Intro && !state.l4Outro && checkAABB(player, b)) {
+                    if (player.vy < 0 && player.y > b.y + b.h - 15) {
+                        player.vy = 0; 
+                        if (b.char === word[state.expectedLetterIndex]) {
+                            b.hit = true; state.expectedLetterIndex++; updateWordDisplay('target-word-4', word, state.expectedLetterIndex);
+                            if (state.expectedLetterIndex === word.length) { 
+                                ctx.fillStyle = "rgba(57, 255, 20, 0.5)"; ctx.fillRect(0,0,800,400); 
+                                if (state.currentWordIndex === spellingList.length - 1) { state.l4Outro = true; } 
+                                else { handleWordComplete(); }
+                            }
+                        } else { b.color = '#ff007f'; recordMistake(); setTimeout(() => { if(!b.hit) b.color = '#ffcc00'; }, 300); }
+                    }
+                }
+            }
+        });
+
+        drawCustomSpaceman(player.x, player.y);
+        drawShip(ship);
+        l4ReqAnim = requestAnimationFrame(gameLoop);
+    }
+
+    // --- SCORING & FINAL REPORT ---
+    function generateReport() {
+        showScreen('report');
+        const calculateScore = (lvl) => Math.max(0, 100 - (state.mistakes[lvl] * 5));
+        const s1 = calculateScore(1); const s2 = calculateScore(2); const s3 = calculateScore(3); const s4 = calculateScore(4);
+
+        document.getElementById('score-l1').innerText = `${s1} Pts`; document.getElementById('score-l2').innerText = `${s2} Pts`;
+        document.getElementById('score-l3').innerText = `${s3} Pts`; document.getElementById('score-l4').innerText = `${s4} Pts`;
+
+        const avg = Math.round((s1 + s2 + s3 + s4) / 4);
+        let grade = "F"; let color = "var(--danger)";
+        if (avg >= 97) { grade = "SUPER RANK"; color = "var(--secondary)"; }
+        else if (avg >= 90) { grade = "A RANK"; color = "var(--success)"; }
+        else if (avg >= 80) { grade = "B RANK"; color = "var(--primary)"; }
+        else if (avg >= 70) { grade = "C RANK"; color = "var(--warning)"; }
+
+        const gradeEl = document.getElementById('final-grade'); gradeEl.innerText = grade; gradeEl.style.color = color; gradeEl.style.textShadow = `0 0 20px ${color}`;
+        
+        currentTrack = 'victory';
+        if (!state.musicEnabled) { toggleMusic(); } else { clearTimeout(musicTimer); noteIdx = 0; playMusicLoop(); }
+
+        let fwCount = 0;
+        continuousFwInterval = setInterval(() => { 
+            createExplosion(Math.random() * fxCanvas.width, Math.random() * (fxCanvas.height * 0.8), 60); 
+            if (fwCount < 4) { playExplosionSound(); fwCount++; }
+        }, 500);
+        setTimeout(() => { clearInterval(continuousFwInterval); }, 2500);
+
+        victoryMusicTimeout = setTimeout(() => {
+            if (state.musicEnabled && currentTrack === 'victory') toggleMusic();
+        }, 10000);
+    }
+</script>
+
+</body>
+</html>
